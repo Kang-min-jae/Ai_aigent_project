@@ -1,0 +1,25 @@
+# 비밀 정보
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Notebook
+.ipynb_checkpoints/
+
+# PDF는 어떤 경로에서도 올리지 않음 (RFP 원문 등 저작권·배포 범위 문제)
+*.pdf
+*.PDF
+
+# 로컬 자료와 결과물 (RFP 원문, 생성된 CSV 등)
+data/*
+!data/README.md
+outputs/
+
+# OS / 편집기
+.DS_Store
+.vscode/
+.idea/
