@@ -52,3 +52,27 @@
 - MVP(최소 기능 제품): 핵심 가치를 보여 주는 가장 작은 버전. 빠진 기능은 버리는 게 아니라 "2단계"로 이름을 붙여 로드맵으로 만든다.
 - LLMOps: 기록 → 측정 → 문제 발견 → 수정 → 재측정을 반복하는 운영 체계. RFP가 직접 요구함.
 - 평가셋 + 코사인 유사도는 지도학습이 아니라 **채점**이다. 모델은 그대로 두고 내 시스템(검색, 프롬프트)을 개선한다. 코사인 유사도는 숫자 오류(3,000원 vs 30,000원)를 못 잡으므로 숫자·키워드 일치 검사나 LLM-as-a-Judge와 섞어 쓴다.
+
+## 2026-11-28: RAG 프로토타입 실행
+
+**한 것**
+- LangChain 기본 RAG 예제(PDF 업로드 → FAISS 검색 → LLM 답변, Streamlit 화면)를 로컬에서 실행
+- 답변 모델을 Claude로, 임베딩을 로컬 한국어 모델로 바꿔 `src/rag_prototype/`에 정리
+- `chunk_size`, `chunk_overlap`, `k`를 `.env`로 분리
+
+**막힌 것과 해결**
+
+| 문제 | 원인 | 해결 |
+|---|---|---|
+| `Could not open requirements file` | `requirements.txt`가 없는 상위 폴더에서 `pip install` 실행 (압축 해제로 폴더가 두 겹) | `app.py`가 있는 폴더로 이동한 뒤 실행 |
+| `(venv)` 표시가 안 붙음 | `python -m venv venv`는 가상환경을 만들기만 함 | `.\venv\Scripts\activate`로 활성화 (PowerShell은 실행 정책 해제 필요) |
+| `streamlit` 명령을 찾을 수 없음 | 패키지를 설치하지 않은 다른 가상환경이 켜져 있었음 | 올바른 폴더의 venv를 다시 활성화, `python -m streamlit run app.py`로 실행 |
+| `openai.AuthenticationError: 401` | 예제는 OpenAI 전용인데 Claude(Anthropic) 키를 발급받았음. 앱은 예전 OpenAI 키를 읽고 있었음 | 답변 모델을 Claude로 교체, `load_dotenv(override=True)`로 `.env` 값 우선 적용 |
+
+**배운 것**
+- OpenAI 키(`sk-proj-`)와 Anthropic 키(`sk-ant-`)는 서로 호환되지 않는다. 라이브러리(`langchain-openai` / `langchain-anthropic`)도 따로 쓴다.
+- Claude는 임베딩 API가 없다 → 답변 모델과 임베딩 모델은 따로 고른다. 로컬 임베딩은 API 비용이 없지만 첫 실행이 느리다.
+- `load_dotenv()`는 같은 이름의 환경변수가 이미 있으면 `.env`를 무시한다.
+- `.env`는 프로그램 시작 때 한 번 읽힌다 → 키를 바꾸면 Streamlit을 재시작해야 한다.
+- 가상환경은 한 번 설치하면 남아 있다. 터미널을 새로 열 때마다 활성화만 다시 하면 된다.
+

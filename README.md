@@ -20,7 +20,7 @@
 |---|---|---|---|
 | 사전 학습 | LLM API, RAG, LangGraph 기초 | `src/` 연습 코드 | 진행 중 |
 | 1. 분석 | RFP 분석, 요구사항 도출, 프로젝트 목표 구체화 | [docs/01_rfp_analysis.md](docs/01_rfp_analysis.md) | 진행 중 |
-| 2. 프로토타입 | 아키텍처 설계, 모델 선정, 프로토타입 (RAG + 라우터) | 프로토타입 | 예정 |
+| 2. 프로토타입 | 아키텍처 설계, 모델 선정, 프로토타입 (RAG + 라우터) | [src/rag_prototype](src/rag_prototype) | 진행 중 |
 | 3. 개선·배포 | 평가 기반 개선, 회의록 기능, 배포, 모니터링 | 배포된 서비스 | 예정 |
 | 4. 정리 | 결과 발표 자료, 회고 | 발표 자료, 회고 | 예정 |
 
@@ -45,7 +45,8 @@
 │   └── study-log.md            # 날짜별 학습 기록, 막힌 점과 해결 방법
 ├── src/
 │   ├── day01_first_call.py         # 첫 LLM API 호출
-│   └── day01_rfp_requirements.py   # RFP PDF → 요구사항 분류표(CSV)
+│   ├── day01_rfp_requirements.py   # RFP PDF → 요구사항 분류표(CSV)
+│   └── rag_prototype/              # PDF 기반 RAG 챗봇 (Streamlit)
 ├── data/          # RFP 원문 등 로컬 자료 (git에 올리지 않음)
 ├── outputs/       # 실행 결과물 (git에 올리지 않음)
 ├── .env.example
@@ -68,4 +69,4 @@ python src/day01_rfp_requirements.py data/rfp/worldvision_rfp.pdf
 
 ## 기술 스택 (계획)
 
-Python · Claude API (Haiku 5.5 / Sonnet 5.5) · LangGraph · Chroma(벡터 DB) · Streamlit · Docker · 클라우드 배포 · LangSmith 또는 Langfuse(모니터링)
+Python · Claude API (Haiku 5.5 / Sonnet 5.5) · LangChain · LangGraph · FAISS·Chroma(벡터 DB) · 로컬 한국어 임베딩 · Streamlit · Docker · 클라우드 배포 · LangSmith 또는 Langfuse(모니터링)
