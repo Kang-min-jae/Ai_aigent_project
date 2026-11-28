@@ -8,6 +8,7 @@ PDF를 올리면 문서 내용을 근거로 답하는 RAG 챗봇. 1단계 MVP의
 |---|---|
 | `rag_module.py` | RAG 파이프라인 8단계 (로드 → 분할 → 임베딩 → FAISS → 검색 → 프롬프트 → Claude → 출력) |
 | `app.py` | Streamlit 화면 (PDF 업로드, 채팅) |
+| `check_retrieval.py` | 검색 진단: 질문별 상위 조각과 정답 조각의 순위 출력 (LLM 호출 없음) |
 | `requirements.txt` | 이 폴더 전용 패키지 목록 |
 
 LangChain 기본 RAG 예제 구조에서 시작해 아래를 바꿨다.
