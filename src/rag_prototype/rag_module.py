@@ -26,7 +26,7 @@ CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "400"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "100"))
 TOP_K = int(os.getenv("TOP_K", "3"))
 SEARCH_TYPE = os.getenv("SEARCH_TYPE", "similarity")  # similarity 또는 mmr
-PROMPT_VERSION = os.getenv("PROMPT_VERSION", "v0")     # prompts.py의 키
+PROMPT_VERSION = os.getenv("PROMPT_VERSION", "v3")     # prompts.py의 키
 
 
 def format_docs(docs):
