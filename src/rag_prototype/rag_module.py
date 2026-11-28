@@ -14,6 +14,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 
+from prompts import PROMPTS
+
 # .env 값을 윈도우 환경변수보다 우선 적용한다 (예전 키가 남아 있어도 무시)
 load_dotenv(override=True)
 
@@ -23,6 +25,15 @@ EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3")
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "400"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "100"))
 TOP_K = int(os.getenv("TOP_K", "3"))
+SEARCH_TYPE = os.getenv("SEARCH_TYPE", "similarity")  # similarity 또는 mmr
+PROMPT_VERSION = os.getenv("PROMPT_VERSION", "v0")     # prompts.py의 키
+
+
+def format_docs(docs):
+    """검색된 조각을 "[N쪽] 내용" 형식으로 이어 붙인다 (출처 쪽수를 LLM이 볼 수 있게)."""
+    return "\n\n".join(
+        f"[{d.metadata.get('page', 0) + 1}쪽] {d.page_content}" for d in docs
+    )
 
 
 def create_rag_chain(pdf_path):
@@ -40,32 +51,26 @@ def create_rag_chain(pdf_path):
     split_documents = text_splitter.split_documents(docs)
 
     # [3~4단계] 임베딩 및 벡터 DB 저장
-    # Claude는 임베딩 모델이 없어서, 내 컴퓨터에서 도는 무료 한국어 임베딩 모델을 쓴다
+    # Claude는 임베딩 모델이 없어서, 내 컴퓨터에서 도는 무료 임베딩 모델을 쓴다
     # (처음 실행할 때 모델을 내려받느라 몇 분 걸린다)
     embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
     vectorstore = FAISS.from_documents(documents=split_documents, embedding=embeddings)
 
     # [5단계] 검색기
     retriever = vectorstore.as_retriever(
-        search_type="similarity",
+        search_type=SEARCH_TYPE,
         search_kwargs={"k": TOP_K},
     )
 
     # [6~7단계] 프롬프트 및 LLM (Claude)
-    template = """Answer the question based only on the following context:
-    {context}
-
-    Question: {question}
-
-    Answer in Korean:"""
-
-    prompt = ChatPromptTemplate.from_template(template)
+    # 프롬프트는 prompts.py에 버전별로 두고 .env의 PROMPT_VERSION으로 고른다
+    prompt = ChatPromptTemplate.from_template(PROMPTS[PROMPT_VERSION])
     # Claude 5.5 모델은 temperature 설정을 받지 않는다 (넣으면 400 오류)
     llm = ChatAnthropic(model=ANSWER_MODEL, max_tokens=2000)
 
     # [8단계] 체인 생성
     rag_chain = (
-        {"context": retriever, "question": RunnablePassthrough()}
+        {"context": retriever | format_docs, "question": RunnablePassthrough()}
         | prompt
         | llm
         | StrOutputParser()

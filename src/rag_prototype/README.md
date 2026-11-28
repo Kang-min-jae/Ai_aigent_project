@@ -8,6 +8,7 @@ PDF를 올리면 문서 내용을 근거로 답하는 RAG 챗봇. 1단계 MVP의
 |---|---|
 | `rag_module.py` | RAG 파이프라인 8단계 (로드 → 분할 → 임베딩 → FAISS → 검색 → 프롬프트 → Claude → 출력) |
 | `app.py` | Streamlit 화면 (PDF 업로드, 채팅) |
+| `prompts.py` | 프롬프트 버전 모음 (v0 원래 예제 → v4 형식 지정 + 단계적 사고). `.env`의 `PROMPT_VERSION`으로 선택 |
 | `check_retrieval.py` | 검색 진단: 질문별 상위 조각과 정답 조각의 순위 출력 (LLM 호출 없음) |
 | `requirements.txt` | 이 폴더 전용 패키지 목록 |
 
@@ -15,7 +16,8 @@ LangChain 기본 RAG 예제 구조에서 시작해 아래를 바꿨다.
 
 - 답변 모델: Claude (`langchain-anthropic`). 모델명은 `.env`의 `ANSWER_MODEL`
 - 임베딩: Claude는 임베딩 모델이 없어 로컬 모델 `BAAI/bge-m3` 사용 (API 비용 없음). 처음에 쓴 `ko-sroberta-multitask`보다 검색 순위가 크게 좋아짐 (아래 실험 기록)
-- `chunk_size`, `chunk_overlap`, `k`를 `.env`로 분리해 코드 수정 없이 실험
+- `chunk_size`, `chunk_overlap`, `k`, `search_type`, 프롬프트 버전을 `.env`로 분리해 코드 수정 없이 실험
+- 검색된 조각을 "[N쪽] 내용" 형식으로 넘겨 LLM이 출처 쪽수를 쓸 수 있게 함
 - 다른 PDF를 올리면 체인을 새로 만들도록 수정, 업로드 파일은 OS 임시 폴더에 저장
 
 ## 실행
