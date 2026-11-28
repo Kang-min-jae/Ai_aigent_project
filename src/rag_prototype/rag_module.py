@@ -60,7 +60,8 @@ def create_rag_chain(pdf_path):
     Answer in Korean:"""
 
     prompt = ChatPromptTemplate.from_template(template)
-    llm = ChatAnthropic(model=ANSWER_MODEL, temperature=0, max_tokens=2000)
+    # Claude 5.5 모델은 temperature 설정을 받지 않는다 (넣으면 400 오류)
+    llm = ChatAnthropic(model=ANSWER_MODEL, max_tokens=2000)
 
     # [8단계] 체인 생성
     rag_chain = (

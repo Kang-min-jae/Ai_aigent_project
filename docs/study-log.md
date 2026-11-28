@@ -68,6 +68,7 @@
 | `(venv)` 표시가 안 붙음 | `python -m venv venv`는 가상환경을 만들기만 함 | `.\venv\Scripts\activate`로 활성화 (PowerShell은 실행 정책 해제 필요) |
 | `streamlit` 명령을 찾을 수 없음 | 패키지를 설치하지 않은 다른 가상환경이 켜져 있었음 | 올바른 폴더의 venv를 다시 활성화, `python -m streamlit run app.py`로 실행 |
 | `openai.AuthenticationError: 401` | 예제는 OpenAI 전용인데 Claude(Anthropic) 키를 발급받았음. 앱은 예전 OpenAI 키를 읽고 있었음 | 답변 모델을 Claude로 교체, `load_dotenv(override=True)`로 `.env` 값 우선 적용 |
+| `AnthropicInvalidRequestError: 400 temperature is deprecated` | Claude 5.5 모델은 `temperature` 파라미터를 받지 않음. 예제의 `temperature=0`을 그대로 옮겼음 | `ChatAnthropic`에서 `temperature` 인자 제거 |
 
 **배운 것**
 - OpenAI 키(`sk-proj-`)와 Anthropic 키(`sk-ant-`)는 서로 호환되지 않는다. 라이브러리(`langchain-openai` / `langchain-anthropic`)도 따로 쓴다.
