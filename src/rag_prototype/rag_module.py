@@ -11,7 +11,8 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_anthropic import ChatAnthropic
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables import RunnableLambda, RunnablePassthrough
+from sentence_transformers import CrossEncoder
 from langchain_core.output_parsers import StrOutputParser
 
 from prompts import PROMPTS
@@ -27,6 +28,24 @@ CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "100"))
 TOP_K = int(os.getenv("TOP_K", "3"))
 SEARCH_TYPE = os.getenv("SEARCH_TYPE", "similarity")  # similarity 또는 mmr
 PROMPT_VERSION = os.getenv("PROMPT_VERSION", "v3")     # prompts.py의 키
+
+# 리랭커: 후보를 넉넉히(RERANK_FETCH_K개) 뽑은 뒤, 질문과 조각을 함께 읽는 모델로 다시 순위를 매겨 TOP_K개만 쓴다
+RERANK = os.getenv("RERANK", "false").lower() == "true"
+RERANK_MODEL = os.getenv("RERANK_MODEL", "BAAI/bge-reranker-v2-m3")
+RERANK_FETCH_K = int(os.getenv("RERANK_FETCH_K", "20"))
+
+
+def rerank_docs(question, docs, model, top_k):
+    """질문-조각 쌍의 관련도 점수를 매겨 높은 순으로 top_k개를 돌려준다.
+
+    임베딩 검색은 질문과 조각을 따로 벡터로 바꿔 비교하지만,
+    리랭커(크로스 인코더)는 둘을 한 번에 읽어 관련도를 판단하므로 더 정밀하다.
+    """
+    if not docs:
+        return []
+    scores = model.predict([(question, d.page_content) for d in docs])
+    ranked = sorted(zip(docs, scores), key=lambda x: x[1], reverse=True)
+    return [d for d, _ in ranked[:top_k]]
 
 
 def format_docs(docs):
@@ -57,10 +76,21 @@ def create_rag_chain(pdf_path):
     vectorstore = FAISS.from_documents(documents=split_documents, embedding=embeddings)
 
     # [5단계] 검색기
-    retriever = vectorstore.as_retriever(
-        search_type=SEARCH_TYPE,
-        search_kwargs={"k": TOP_K},
-    )
+    if RERANK:
+        # 1차: 임베딩으로 후보를 넉넉히 뽑는다 → 2차: 리랭커로 TOP_K개를 고른다
+        base = vectorstore.as_retriever(
+            search_type=SEARCH_TYPE,
+            search_kwargs={"k": RERANK_FETCH_K},
+        )
+        reranker = CrossEncoder(RERANK_MODEL)
+        retriever = RunnableLambda(
+            lambda q: rerank_docs(q, base.invoke(q), reranker, TOP_K)
+        )
+    else:
+        retriever = vectorstore.as_retriever(
+            search_type=SEARCH_TYPE,
+            search_kwargs={"k": TOP_K},
+        )
 
     # [6~7단계] 프롬프트 및 LLM (Claude)
     # 프롬프트는 prompts.py에 버전별로 두고 .env의 PROMPT_VERSION으로 고른다
