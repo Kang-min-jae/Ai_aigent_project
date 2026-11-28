@@ -14,7 +14,7 @@ PDF를 올리면 문서 내용을 근거로 답하는 RAG 챗봇. 1단계 MVP의
 LangChain 기본 RAG 예제 구조에서 시작해 아래를 바꿨다.
 
 - 답변 모델: Claude (`langchain-anthropic`). 모델명은 `.env`의 `ANSWER_MODEL`
-- 임베딩: Claude는 임베딩 모델이 없어 로컬 한국어 모델 `jhgan/ko-sroberta-multitask` 사용 (API 비용 없음)
+- 임베딩: Claude는 임베딩 모델이 없어 로컬 모델 `BAAI/bge-m3` 사용 (API 비용 없음). 처음에 쓴 `ko-sroberta-multitask`보다 검색 순위가 크게 좋아짐 (아래 실험 기록)
 - `chunk_size`, `chunk_overlap`, `k`를 `.env`로 분리해 코드 수정 없이 실험
 - 다른 PDF를 올리면 체인을 새로 만들도록 수정, 업로드 파일은 OS 임시 폴더에 저장
 
@@ -27,7 +27,19 @@ cd src/rag_prototype
 streamlit run app.py
 ```
 
-첫 실행 때 임베딩 모델(약 400MB)을 내려받느라 몇 분 걸린다.
+첫 실행 때 임베딩 모델(약 2GB)을 내려받느라 몇 분 걸린다.
+
+## 실험 기록
+
+질문 "이 사업의 배경과 목적이 뭐야?"에 대해 정답 조각(RFP 2쪽 "사업 배경 및 목적")이 몇 등으로 검색되는지 `check_retrieval.py`로 측정했다.
+
+| 설정 | 정답 조각 순위 | 상위 % | 결론 |
+|---|---|---|---|
+| chunk 400 / overlap 100 / ko-sroberta | 14 / 75 | 19% | 기준. k=3, 6 모두 "문서에 없다"고 답함 |
+| chunk 200 / overlap 50 / ko-sroberta | 26 / 145 | 18% | 청크 크기는 원인이 아님 |
+| chunk 400 / overlap 100 / bge-m3 | 1 / 75 | 1% | 임베딩 모델이 핵심 원인 |
+
+관찰: 기존 모델에서는 "사업", "목적"이 반복되는 제안서 작성·입찰 절차 조각(목차 표, 평가 기준, 일정)이 상위 10개를 모두 차지했다.
 
 ## 다음 실험
 

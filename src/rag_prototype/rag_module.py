@@ -1,7 +1,7 @@
 """RAG 파이프라인 8단계: 로드 → 분할 → 임베딩 → 벡터 DB → 검색 → 프롬프트 → LLM → 출력.
 
 LangChain 기본 RAG 예제 구조를 바탕으로, 답변 모델을 Claude로 바꾸고
-임베딩을 로컬 한국어 모델로 바꿨다. 실험 파라미터는 .env에서 읽는다.
+임베딩을 로컬 다국어 모델(bge-m3)로 바꿨다. 실험 파라미터는 .env에서 읽는다.
 """
 import os
 from dotenv import load_dotenv
@@ -19,7 +19,7 @@ load_dotenv(override=True)
 
 # 도메인·실험에 따라 바뀌는 값은 .env에서 읽는다 (하드코딩하지 않음)
 ANSWER_MODEL = os.getenv("ANSWER_MODEL", "claude-haiku-5-5")
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "jhgan/ko-sroberta-multitask")
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3")
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "400"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "100"))
 TOP_K = int(os.getenv("TOP_K", "3"))

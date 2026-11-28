@@ -15,4 +15,4 @@
 | 2026-11-28 | RAG 프로토타입의 답변 모델을 OpenAI GPT-4o에서 Claude로 교체 | 프로젝트 메인 LLM(Claude)과 통일, 키·비용 관리 일원화 | 예제 그대로 OpenAI 사용 |
 | 2026-11-28 | 임베딩은 로컬 한국어 모델(`jhgan/ko-sroberta-multitask`) | Claude는 임베딩 API가 없음. 로컬 모델은 비용이 없고 한국어 문서에 맞음 | OpenAI·Voyage 임베딩 API |
 | 2026-11-28 | 프로토타입 벡터 DB는 FAISS, 서비스 단계에서 Chroma 검토 | 예제 구조를 유지해 빠르게 실행 확인. 메타데이터 필터(부서별 권한)가 필요해지면 교체 | 처음부터 Chroma |
-
+| 2026-11-28 | 임베딩 모델을 `ko-sroberta-multitask`에서 `BAAI/bge-m3`로 교체 | 정답 조각 순위 14/75 → 1/75. 청크 크기 변경(200자)은 효과 없음(26/145). 상세는 `src/rag_prototype/README.md` | 청크 크기·k 조정, 하이브리드 검색 |
